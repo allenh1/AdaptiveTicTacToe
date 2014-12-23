@@ -1,5 +1,5 @@
-#ifndef MAIN_WINDOW_H
-#define MAIN_WINDOW_H
+#ifndef BOARDUI_H
+#define BOARDUI_H
 #define ROWS 3
 #define COLS 3
 
@@ -9,7 +9,9 @@
 #include <QHBoxLayout>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QSignalMapper>
 #include <QString>
+#include <iostream>
 
 enum Board { X=88, O=79, B=92 };
 
@@ -21,19 +23,14 @@ public:
 	BoardUI(QWidget * parent = 0);
 	~BoardUI();
 
-	Q_SLOT void updateUI();
+	Q_SLOT void updateUI(int clicked);
+	Q_SLOT void madeMove(quint8,quint8);
 private:
 	Board pBoard[ROWS][COLS];  //true = 'X'; false = 'O';
 
-	QPushButton *pUL;//upper left
-	QPushButton *pUM;
-	QPushButton *pUR;
-	QPushButton *pML;
-	QPushButton *pMM;
-	QPushButton *pMR;
-	QPushButton *pLL;
-	QPushButton *pLM;
-	QPushButton *pLR;
+	QPushButton pButtonArray[ROWS][COLS];
+
+	QSignalMapper * pButtons;
 
 	QHBoxLayout *pHorizontal;
 	QVBoxLayout *pVertical1;

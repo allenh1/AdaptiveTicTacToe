@@ -13,6 +13,8 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-           boardUI.cpp
+           boardUI.cpp\
+           GameThread.cpp
 
-HEADERS  += boardUI.h
+HEADERS  += boardUI.h\
+			GameThread.h

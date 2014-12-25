@@ -15,6 +15,10 @@ TEMPLATE = app
 SOURCES += main.cpp\
            boardUI.cpp\
            GameThread.cpp
+           #lib/*.cpp
 
 HEADERS  += boardUI.h\
-			GameThread.h
+            GameThread.h
+                        #lib/*.h
+
+QMAKE_CXXFLAGS += -std=c++11

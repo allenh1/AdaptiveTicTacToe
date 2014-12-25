@@ -1,6 +1,8 @@
 #include "boardUI.h"
-BoardUI::BoardUI(QWidget * parent)
-	: QWidget(parent)
+BoardUI::BoardUI(int argc, char ** argv, QWidget * parent)
+    : QWidget(parent),
+      m_locked(false),
+      m_gameThread(argc, argv)
 {
 	/** Set up the buttons for the UI **/
 	// pButtonArray = new QPushButton[ROWS][COLS];
@@ -42,8 +44,14 @@ BoardUI::BoardUI(QWidget * parent)
 	setLayout(pHorizontal);
 	show();
 
-
-
+    connect(&m_gameThread, SIGNAL(gotMove()), &m_gameThread, SLOT(aiTurn()));
+    connect(this, SIGNAL(madeMove(quint8,quint8)), &m_gameThread, SLOT(receiveMove(quint8,quint8)));
+    connect(this, SIGNAL(destroyed()), &m_gameThread, SLOT(closeThread()));
+    connect(this, SIGNAL(destroyed()), &m_gameThread, SLOT(terminate()));
+    connect(&m_gameThread, SIGNAL(aiHasMoved()), this, SLOT(unlockMoves()));
+    connect(this, SIGNAL(aiTurn()), this, SLOT(lockMoves()));
+    connect(&m_gameThread, SIGNAL(aiMove(quint8,quint8)), this, SLOT(markUI(quint8,quint8)));
+    m_gameThread.start();
 	setWindowTitle(tr("Adaptive Tic-Tac-Toe"));
 }
 
@@ -52,14 +60,27 @@ BoardUI::~BoardUI()
 	delete pHorizontal;//this should be all we need to clean?
 }
 
+void BoardUI::lockMoves(){ m_locked = true; }
+void BoardUI::unlockMoves(){ m_locked = false; }
+
 void BoardUI::updateUI(int clicked)
 {
-	// std::cout<<"In updateUI, clicked = "<<clicked<<std::endl;
-	quint8 col = clicked % 3;
-	quint8 row = clicked / 3;
-	// std::cout<<"Row, Col = "<<col<<", "<<row<<std::endl;
-	pBoard[row][col] = X;
+    if (!m_locked)
+    {
+        quint8 col = clicked % 3;
+        quint8 row = clicked / 3;
 
-	pButtonArray[row][col].setText(tr("X"));
-	Q_EMIT madeMove(row, col);
+        pBoard[row][col] = X;
+
+        pButtonArray[row][col].setText(tr("X"));
+        Q_EMIT aiTurn();
+        Q_EMIT madeMove(row, col);
+    }
+}
+
+void BoardUI::markUI(quint8 row, quint8 col)
+{
+    pBoard[row][col] = O;
+
+    pButtonArray[row][col].setText(tr("O"));
 }

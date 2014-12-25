@@ -1,11 +1,10 @@
-#include "GameThread.h"
+#include "boardUI.h"
 #include <QApplication>
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    GameThread w(argc, argv);
-    w.run();
+    BoardUI w(argc, argv);
 
     return a.exec();
 }

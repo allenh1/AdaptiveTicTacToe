@@ -8,33 +8,49 @@
  * 2. Handle the rules of the game.
  * 3. This thread also controls the A.I. for the game.
 */
-
+#define ROWS 3
+#define COLS 3
+#include <iostream>
 #include <QThread>
 #include <QFile>
 #include <QString>
-#include <QHash>
+#include <QList>
 #include <QDataStream>
-
-#include "boardUI.h"
+#include <QObject>
 
 /**
  * This struct contains the data to be saved. For the AI
 */
-struct moveData
+enum Board { X=88, O=79, B=' ' };
+
+class MoveData
 {
-	quint8 row;//row moved to
-	quint8 col;//row moved to
+public:
+    MoveData(){}
+    quint8 row = 0;//row moved to
+    quint8 col = 0;//row moved to
 
-	quint8 lastRow;
-	quint8 lastCol;
+    quint8 lastRow = 0;
+    quint8 lastCol = 0;
+    bool operator==(const MoveData& other)
+    {
+        return other.row == row &&
+               other.col == col &&
+               other.lastRow == lastRow &&
+               other.lastCol == lastCol;
+    }
 
-	bool operator ==(const moveData& m1)
-	{
-		return lastRow == m1.lastRow &&
-			   lastCol == m1.lastCol &&
-			   row == m1.row &&
-			   col == m1.col;
-	}
+    bool operator=(const MoveData& m2)
+    {
+        row = m2.row;
+        col = m2.col;
+        lastRow = m2.lastRow;
+        lastCol = m2.lastCol;
+        return true;
+    }
+
+    quint64 count = 0;
+    void incCount(){ count++; }
 };
 
 class GameThread : public QThread
@@ -45,20 +61,28 @@ public:
 	GameThread(int argc, char ** argv);
 
 	void run();
-	inline void addMoveToHash(moveData toAdd);
+    inline void addMoveToList(MoveData toAdd);
 
 	Q_SIGNAL void ioError(QString);
 	Q_SIGNAL void gotMove();
+    Q_SIGNAL void aiMove(quint8,quint8);
+    Q_SIGNAL void aiHasMoved();
+    Q_SLOT void closeThread();
 	Q_SLOT void aiTurn();
 	Q_SLOT void receiveMove(quint8,quint8);
+
+    void saveData();
+
+    bool hasWinner(QString * winner);
+    bool hasWinner(Board board[ROWS][COLS], QString * winner);
+    bool isOccupied(quint8 row, quint8 col);
 private:
+    Board m_board[ROWS][COLS];
 	int m_argc;
 	char ** m_argv;
 	QFile  * pData;
-	QHash<moveData, qint64> * pKnowledge;
+    QList<MoveData> * pKnowledge;
 	bool m_finished;
-	moveData * pLastMove;
-
-	BoardUI * pBoardUI;
+    MoveData * pLastMove;
 };
 #endif

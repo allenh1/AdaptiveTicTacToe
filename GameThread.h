@@ -32,6 +32,8 @@ public:
 
     quint8 lastRow = 0;
     quint8 lastCol = 0;
+    double probability = 0;
+
     bool operator==(const MoveData& other)
     {
         return other.row == row &&
@@ -51,6 +53,16 @@ public:
 
     quint64 count = 0;
     void incCount(){ count++; }
+    QString asString;
+
+    const QString& toString(){ return asString = QString("Countered (" + QString().number(lastRow) + ", " + QString().number(lastCol) +
+                                                         ")  with (" + QString().number(row) + ", " + QString().number(col) + ") ") +
+                                                         QString().number(count) + " times."; }
+};
+
+struct MoveSequence
+{
+    QList<MoveData> sequence;
 };
 
 class GameThread : public QThread
@@ -71,6 +83,7 @@ public:
 	Q_SLOT void aiTurn();
 	Q_SLOT void receiveMove(quint8,quint8);
 
+    bool tryPath(QList<MoveData> * pAll, MoveSequence * sequence);
     void saveData();
 
     bool hasWinner(QString * winner);
@@ -83,6 +96,7 @@ private:
 	QFile  * pData;
     QList<MoveData> * pKnowledge;
 	bool m_finished;
+    bool m_wake = true;
     MoveData * pLastMove;
 };
 #endif

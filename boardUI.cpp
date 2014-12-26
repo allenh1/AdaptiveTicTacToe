@@ -70,11 +70,14 @@ void BoardUI::updateUI(int clicked)
         quint8 col = clicked % 3;
         quint8 row = clicked / 3;
 
-        pBoard[row][col] = X;
+        if (pBoard[row][col] == B)
+        {
+            pBoard[row][col] = X;
 
-        pButtonArray[row][col].setText(tr("X"));
-        Q_EMIT aiTurn();
-        Q_EMIT madeMove(row, col);
+            pButtonArray[row][col].setText(tr("X"));
+            Q_EMIT aiTurn();
+            Q_EMIT madeMove(row, col);
+        }
     }
 }
 

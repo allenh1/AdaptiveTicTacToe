@@ -47,6 +47,7 @@ GameThread::GameThread(int argc, char ** argv) :
         {
             MoveData temp;
             in >> temp;//move the next input into the temp object.
+            std::cout<<temp.toString().toStdString()<<std::endl;
             pKnowledge->push_back(temp);
         }//loop through the file and add it.
      }
@@ -77,8 +78,8 @@ void GameThread::receiveMove(quint8 x, quint8 y)
 
     m_board[x][y] = X;
     addMoveToList(*pLastMove);
-	delete pLastMove;
-    pLastMove = new MoveData();
+    //delete pLastMove;
+    //pLastMove = new MoveData();
 	Q_EMIT gotMove();
 }
 
@@ -94,31 +95,52 @@ void GameThread::saveData()
     QDataStream out(pData);
     for (int x = 0; x < pKnowledge->size(); ++x)
         out << pKnowledge->at(x);
+    pData->flush();
+    pData->close();
+}
+
+struct BoardLocation{ quint8 row; quint8 col; };
+
+bool GameThread::tryPath(QList<MoveData> * pAll, MoveSequence * sequence)
+{
+    quint8 row, col;
+    bool done = false;
+    QList<BoardLocation> available;
+
+    for (quint8 x = 0; x < ROWS; ++x) {
+        for (quint8 y = 0; y < COLS; ++y)
+        {
+            if (!isOccupied(x, y))
+            { BoardLocation b; b.row = x; b.col = y; available.push_back(b); }
+        }
+    }//outer for
+
+
 }
 
 void GameThread::aiTurn()
 {
-    bool done = false;
-    for (quint8 x = 0; x < 3; x++) {
-        for (quint8 y = 0; y < 3; y++) {
-            if (!isOccupied(x, y))
-            {
-                Q_EMIT(aiMove(x, y));
-                Q_EMIT aiHasMoved();
-                done = true;
-                break;
-            }
-        }
-        if (done)
-            break;
-    }
+    /**
+     * This is the AI decision.
+     *
+     * 1. How many total moves have been made?
+     * 2. What is the probability this particular move
+     *    will be made again?
+     * 3. Is there a sequence of moves I can make to win?
+     * 4. If I make this move, do I know how he will likely counter it?
+     * 5. Is there any spot I can go and still win?
+     * 6. If no, I go to a random open spot.
+     */
+
+    MoveSequence moves;
+
 }
 
 void GameThread::run()
 {
     std::cout<<"Hello from the game thread!"<<std::endl;
     QString gameWinner;
-	while (!m_finished)
+    while (!m_finished)
 	{
         if (hasWinner(&gameWinner) && gameWinner != " ")
         {
@@ -139,17 +161,15 @@ bool GameThread::hasWinner(Board board[ROWS][COLS], QString *winner)
     for (int x = 0; x < ROWS; ++x)
     {
         if (board[x][0] == board[x][1] && board[x][0] == board[x][2])
-        { *winner = QString((char) board[x][0]); if (board[x][0] != ' '){return true;} }
-
+        { *winner = QString((char) board[x][0]); if (board[x][0] != B){return true;}}
         if (board[0][x] == board[1][x] && board[0][x] == board[2][x])
-        { *winner = QString((char) board[0][x]); if (board[0][x] != ' '){return true;} }
-
+        { *winner = QString((char) board[0][x]); if (board[0][x] != B){return true;}}
     }//end for
 
     if ((board[0][0] == board[1][1] && board[0][0] == board[2][2]))
-    { *winner = QString((char) board[1][1]); if (board[0][0] != ' '){ return true; } }
+    { *winner = QString((char) board[1][1]); if (board[0][0] != B){return true;}}
     if ((board[2][0] == board[1][1] && board[0][2] == board[2][0]))
-    { *winner = QString((char) board[1][1]); if (board[1][1] != ' '){ return true; } }
+    { *winner = QString((char) board[1][1]); if (board[1][1] != B){return true;}}
 
     return false;
 }
